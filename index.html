@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -66,46 +65,92 @@
         .notify-success { background: var(--success); }
         .notify-error { background: var(--danger); }
 
-        /* Print Styles - Vertical Layout */
+        /* ========================================= */
+        /* Print Styles - معدل لطباعة صفحة واحدة نظيفة */
+        /* ========================================= */
         @media print {
-            body { background: white; padding: 0; font-size: 12pt; }
-            header, .tabs, .table-controls, #login-screen, .no-print { display: none !important; }
+            @page { margin: 10mm; size: A4; } /* هوامش صغيرة للصفحة */
+            
+            body { 
+                background: white; 
+                padding: 0; 
+                font-size: 11pt; /* حجم خط مناسب */
+                color: black;
+            }
+
+            /* إخفاء العناصر غير المطلوبة */
+            header, .tabs, .table-controls, #login-screen, .no-print, .btn, #notification { 
+                display: none !important; 
+            }
+            
+            /* إخفاء الحاويات غير الضرورية */
             .container { max-width: 100%; width: 100%; padding: 0; margin: 0; }
+            #app-interface { display: block !important; }
             
-            /* Hide sections borders for cleaner look */
-            .form-section { border: none; padding: 0; margin-bottom: 10px; box-shadow: none; page-break-inside: avoid; }
-            .form-section h3 { border-bottom: 1px solid #000; color: #000; font-size: 14pt; margin-bottom: 10px; }
+            /* تنسيق أقسام النموذج */
+            .form-section {
+                border: 1px solid #000; /* إطار أسود رفيع */
+                padding: 10px;
+                margin-bottom: 10px; /* مسافة أقل */
+                box-shadow: none;
+                border-radius: 0;
+                page-break-inside: avoid; /* منع قص القسم في منتصفه */
+            }
+
+            .form-section h3 {
+                border-bottom: 1px solid #000;
+                color: #000;
+                font-size: 12pt;
+                margin-bottom: 8px;
+                padding-bottom: 5px;
+                background: #f0f0f0 !important; /* خلفية رمادية خفيفة للعنوان */
+                -webkit-print-color-adjust: exact;
+                padding: 5px;
+            }
             
-            /* Force Vertical Stack */
-            .grid-form { display: block !important; }
+            /* الشبكة في الطباعة: عمودين لاستغلال المساحة */
+            .grid-form { 
+                display: grid !important; 
+                grid-template-columns: 1fr 1fr; /* عمودين متساويين */
+                gap: 10px 20px; /* تباعد بسيط */
+            }
+
+            /* الحقل الواحد */
             .form-group { 
                 display: flex; 
-                margin-bottom: 8px; 
-                border-bottom: 1px dotted #ccc;
-                padding-bottom: 4px;
+                flex-direction: column;
+                margin-bottom: 0;
             }
+
             .form-group label { 
-                width: 180px; 
-                font-weight: bold; 
-                color: #000;
-                flex-shrink: 0;
+                font-size: 9pt;
+                font-weight: bold;
+                color: #555;
+                margin-bottom: 2px;
             }
+
+            /* تحويل المدخلات إلى نصوص عادية */
             .form-group input, .form-group select, .form-group textarea { 
-                border: none !important; 
-                background: transparent !important; 
-                padding: 0 !important; 
-                font-weight: normal;
+                border: none !important;
+                border-bottom: 1px dotted #999 !important; /* خط منقط أسفل النص */
+                background: transparent !important;
+                padding: 0 !important;
+                font-weight: bold;
                 color: #000;
-                flex-grow: 1;
-                font-family: inherit;
+                font-size: 11pt;
+                height: auto;
+                min-height: auto;
                 resize: none;
+                appearance: none; /* إخفاء سهم القائمة المنسدلة */
             }
-            
-            /* Hide placeholders in print */
+
+            /* إخفاء الـ placeholder عند الطباعة */
             ::placeholder { color: transparent; }
             
-            /* Ensure single page fit mostly */
+            /* التأكد من ظهور المحتوى */
             .tab-content { display: block !important; }
+            #tab-db, #tab-settings { display: none !important; } /* ضمان عدم ظهور الجداول أو الإعدادات */
+            #tab-form { display: block !important; }
         }
     </style>
 </head>
@@ -523,12 +568,11 @@
             tbody.innerHTML = '';
             
             const search = document.getElementById('search-input').value.toLowerCase();
-            const filterBranch = document.getElementById('filter-branch').value; // Get Branch Filter
+            const filterBranch = document.getElementById('filter-branch').value; 
 
             const filtered = appData.records.filter(r => {
                 const txt = `${r.name} ${r.phone} ${r.national_id}`.toLowerCase();
                 const matchSearch = txt.includes(search);
-                // Filter Logic: If filter is selected, check if record's branch matches
                 const matchBranch = filterBranch ? (r.org_branch === filterBranch) : true;
                 return matchSearch && matchBranch;
             });
@@ -561,16 +605,10 @@
         }
 
         function printRecord(id) {
-            // To print vertically on one page:
-            // 1. Populate the Form with the data (readonly mode mentally)
-            // 2. Hide everything else via CSS @media print
-            // 3. Print
-            
             const rec = appData.records.find(d => d.id == id);
             if (!rec) return;
 
-            // Save current form state to restore later if needed, or just clear
-            // Populate form fields manually to avoid triggering "Edit Mode" UI changes if Viewer
+            // Populate form fields manually
             document.getElementById('f_name').value = rec.name;
             document.getElementById('f_dob').value = rec.dob;
             document.getElementById('f_pob').value = rec.pob;
@@ -598,7 +636,6 @@
             document.getElementById('f_notes').value = rec.notes;
 
             // Switch to form tab temporarily for printing
-            // We use a trick: hide all tab contents, show form, print, then restore
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById('tab-form').classList.remove('hidden');
             
@@ -606,7 +643,7 @@
                 window.print();
                 // Restore view
                 if(currentRole === 'VIEWER') switchTab('tab-db');
-                else switchTab('tab-db'); // Return to DB usually makes sense
+                else switchTab('tab-db'); 
             }, 300);
         }
 
