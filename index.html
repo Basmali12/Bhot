@@ -1,12 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام إدارة البيانات | Data Manager</title>
+    <title>نظام إدارة البيانات</title>
     <style>
         :root {
-            --primary: #2563eb; /* اللون الافتراضي */
+            --primary: #2563eb;
             --bg: #f3f4f6;
             --surface: #ffffff;
             --text: #1f2937;
@@ -16,7 +17,7 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 60px; }
         
         /* Utils */
         .hidden { display: none !important; }
@@ -29,8 +30,8 @@
         
         /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .login-box { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 6px; }
+        .login-box { background: var(--surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; }
+        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; text-align: center; letter-spacing: 2px; }
 
         /* Layout */
         header { background: var(--primary); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
@@ -65,16 +66,46 @@
         .notify-success { background: var(--success); }
         .notify-error { background: var(--danger); }
 
-        /* Print Styles */
+        /* Print Styles - Vertical Layout */
         @media print {
-            body { background: white; padding: 0; }
+            body { background: white; padding: 0; font-size: 12pt; }
             header, .tabs, .table-controls, #login-screen, .no-print { display: none !important; }
-            .container { max-width: 100%; width: 100%; padding: 0; }
-            .form-section { border: none; padding: 0; margin-bottom: 20px; page-break-inside: avoid; }
-            input, select, textarea { border: none !important; background: transparent !important; padding: 0 !important; font-weight: bold; }
-            label { color: #666; font-size: 0.8rem; }
-            table { width: 100%; border: 1px solid black; }
-            th, td { border: 1px solid black; }
+            .container { max-width: 100%; width: 100%; padding: 0; margin: 0; }
+            
+            /* Hide sections borders for cleaner look */
+            .form-section { border: none; padding: 0; margin-bottom: 10px; box-shadow: none; page-break-inside: avoid; }
+            .form-section h3 { border-bottom: 1px solid #000; color: #000; font-size: 14pt; margin-bottom: 10px; }
+            
+            /* Force Vertical Stack */
+            .grid-form { display: block !important; }
+            .form-group { 
+                display: flex; 
+                margin-bottom: 8px; 
+                border-bottom: 1px dotted #ccc;
+                padding-bottom: 4px;
+            }
+            .form-group label { 
+                width: 180px; 
+                font-weight: bold; 
+                color: #000;
+                flex-shrink: 0;
+            }
+            .form-group input, .form-group select, .form-group textarea { 
+                border: none !important; 
+                background: transparent !important; 
+                padding: 0 !important; 
+                font-weight: normal;
+                color: #000;
+                flex-grow: 1;
+                font-family: inherit;
+                resize: none;
+            }
+            
+            /* Hide placeholders in print */
+            ::placeholder { color: transparent; }
+            
+            /* Ensure single page fit mostly */
+            .tab-content { display: block !important; }
         }
     </style>
 </head>
@@ -85,10 +116,9 @@
     <div id="login-screen">
         <div class="login-box">
             <h2>تسجيل الدخول</h2>
-            <p style="color: #666; font-size: 0.9rem;">النظام المحلي</p>
+            <p style="color: #666; font-size: 0.9rem;">أدخل رمز المرور للمتابعة</p>
             <form onsubmit="handleLogin(event)">
-                <input type="text" id="login-user" placeholder="اسم المستخدم" required>
-                <input type="password" id="login-pass" placeholder="كلمة المرور" required>
+                <input type="password" id="login-code" placeholder="رمز الدخول" required autocomplete="off">
                 <button type="submit" class="btn btn-primary full-width">دخول</button>
             </form>
         </div>
@@ -97,19 +127,24 @@
     <div id="app-interface" class="hidden">
         <header>
             <div id="app-title">نظام السجلات</div>
-            <button onclick="handleLogout()" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">خروج</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="user-role-display" style="font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;"></span>
+                <button onclick="handleLogout()" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">خروج</button>
+            </div>
         </header>
 
         <div class="container">
             <div class="tabs no-print">
-                <button class="tab-btn active" onclick="switchTab('tab-form')">إضافة / تعديل</button>
-                <button class="tab-btn" onclick="switchTab('tab-db')">قاعدة البيانات</button>
-                <button class="tab-btn" onclick="switchTab('tab-settings')">الإعدادات</button>
+                <button class="tab-btn admin-only" id="btn-tab-form" onclick="switchTab('tab-form')">إضافة / تعديل</button>
+                <button class="tab-btn" id="btn-tab-db" onclick="switchTab('tab-db')">قاعدة البيانات والبحث</button>
+                <button class="tab-btn admin-only" id="btn-tab-settings" onclick="switchTab('tab-settings')">الإعدادات</button>
             </div>
 
-            <div id="tab-form" class="tab-content">
+            <div id="tab-form" class="tab-content hidden">
                 <form id="main-form" onsubmit="handleSave(event)">
-                    <input type="hidden" id="f_id"> <div style="display: flex; justify-content: space-between; margin-bottom: 10px;" class="no-print">
+                    <input type="hidden" id="f_id"> 
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;" class="no-print admin-only">
                         <button type="button" class="btn btn-outline" onclick="resetForm()">مسح النموذج (جديد)</button>
                         <button type="submit" class="btn btn-primary" id="save-btn">حفظ السجل</button>
                     </div>
@@ -117,33 +152,17 @@
                     <div class="form-section">
                         <h3>1. المعلومات الشخصية</h3>
                         <div class="grid-form">
-                            <div class="form-group">
-                                <label>الاسم الرباعي واللقب *</label>
-                                <input type="text" id="f_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>تاريخ الميلاد</label>
-                                <input type="date" id="f_dob">
-                            </div>
-                            <div class="form-group">
-                                <label>محل التولد</label>
-                                <input type="text" id="f_pob">
-                            </div>
-                            <div class="form-group">
-                                <label>الجنس</label>
+                            <div class="form-group"><label>الاسم الرباعي واللقب</label><input type="text" id="f_name" required></div>
+                            <div class="form-group"><label>تاريخ الميلاد</label><input type="date" id="f_dob"></div>
+                            <div class="form-group"><label>محل التولد</label><input type="text" id="f_pob"></div>
+                            <div class="form-group"><label>الجنس</label>
                                 <select id="f_gender">
                                     <option value="ذكر">ذكر</option>
                                     <option value="أنثى">أنثى</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>اسم الأم الثلاثي</label>
-                                <input type="text" id="f_mother">
-                            </div>
-                            <div class="form-group">
-                                <label>رقم هوية الأحوال/البطاقة الوطنية</label>
-                                <input type="text" id="f_national_id">
-                            </div>
+                            <div class="form-group"><label>اسم الأم الثلاثي</label><input type="text" id="f_mother"></div>
+                            <div class="form-group"><label>رقم الهوية</label><input type="text" id="f_national_id"></div>
                         </div>
                     </div>
 
@@ -159,54 +178,27 @@
                                     <option value="أرمل">أرمل</option>
                                 </select>
                             </div>
-                            <div class="form-group hidden" id="group-spouse">
-                                <label>اسم الزوج/الزوجة</label>
-                                <input type="text" id="f_spouse">
-                            </div>
-                            <div class="form-group hidden" id="group-children">
-                                <label>عدد الأطفال</label>
-                                <input type="number" id="f_children" min="0">
-                            </div>
+                            <div class="form-group hidden" id="group-spouse"><label>اسم الزوج/الزوجة</label><input type="text" id="f_spouse"></div>
+                            <div class="form-group hidden" id="group-children"><label>عدد الأطفال</label><input type="number" id="f_children"></div>
                         </div>
                     </div>
 
                     <div class="form-section">
                         <h3>3. التعليم والعمل</h3>
                         <div class="grid-form">
-                            <div class="form-group">
-                                <label>التحصيل الدراسي</label>
-                                <input type="text" id="f_education">
-                            </div>
-                            <div class="form-group">
-                                <label>التخصص الدراسي</label>
-                                <input type="text" id="f_specialization">
-                            </div>
-                            <div class="form-group">
-                                <label>العمل الحالي</label>
-                                <input type="text" id="f_job">
-                            </div>
+                            <div class="form-group"><label>التحصيل الدراسي</label><input type="text" id="f_education"></div>
+                            <div class="form-group"><label>التخصص الدراسي</label><input type="text" id="f_specialization"></div>
+                            <div class="form-group"><label>العمل الحالي</label><input type="text" id="f_job"></div>
                         </div>
                     </div>
 
                     <div class="form-section">
                         <h3>4. السكن والاتصال</h3>
                         <div class="grid-form">
-                            <div class="form-group">
-                                <label>رقم الهاتف *</label>
-                                <input type="tel" id="f_phone" required placeholder="مثال: 07700000000">
-                            </div>
-                            <div class="form-group">
-                                <label>المحافظة / القضاء / الناحية</label>
-                                <input type="text" id="f_address_1">
-                            </div>
-                            <div class="form-group">
-                                <label>منطقة / محلة / زقاق / دار</label>
-                                <input type="text" id="f_address_2">
-                            </div>
-                            <div class="form-group">
-                                <label>أقرب نقطة دالة</label>
-                                <input type="text" id="f_landmark">
-                            </div>
+                            <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="f_phone" required></div>
+                            <div class="form-group"><label>العنوان (المحافظة/القضاء)</label><input type="text" id="f_address_1"></div>
+                            <div class="form-group"><label>تفاصيل العنوان (منطقة/دار)</label><input type="text" id="f_address_2"></div>
+                            <div class="form-group"><label>أقرب نقطة دالة</label><input type="text" id="f_landmark"></div>
                         </div>
                     </div>
 
@@ -214,7 +206,21 @@
                         <h3>5. البيانات التنظيمية</h3>
                         <div class="grid-form">
                             <div class="form-group"><label>الهيئة</label><input type="text" id="f_org_body"></div>
-                            <div class="form-group"><label>الفرع</label><input type="text" id="f_org_branch"></div>
+                            
+                            <div class="form-group">
+                                <label>الفرع</label>
+                                <select id="f_org_branch">
+                                    <option value="">اختر الفرع...</option>
+                                    <option value="الفرع الأول">الفرع الأول</option>
+                                    <option value="الفرع الثاني">الفرع الثاني</option>
+                                    <option value="الفرع الثالث">الفرع الثالث</option>
+                                    <option value="الفرع الرابع">الفرع الرابع</option>
+                                    <option value="الفرع الخامس">الفرع الخامس</option>
+                                    <option value="الفرع السادس">الفرع السادس</option>
+                                    <option value="أخرى">أخرى</option>
+                                </select>
+                            </div>
+
                             <div class="form-group"><label>الشعبة</label><input type="text" id="f_org_div"></div>
                             <div class="form-group"><label>اسم الشعبة</label><input type="text" id="f_org_div_name"></div>
                             <div class="form-group"><label>الصنف</label><input type="text" id="f_org_class"></div>
@@ -224,19 +230,9 @@
                     <div class="form-section">
                         <h3>6. معلومات إضافية</h3>
                         <div class="grid-form">
-                            <div class="form-group">
-                                <label>الخبرات</label>
-                                <textarea id="f_skills"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>اسم المعرف ورقم هاتفه</label>
-                                <input type="text" id="f_ref_name" placeholder="الاسم">
-                                <input type="tel" id="f_ref_phone" placeholder="الهاتف" style="margin-top: 5px;">
-                            </div>
-                            <div class="form-group">
-                                <label>ملاحظات</label>
-                                <textarea id="f_notes"></textarea>
-                            </div>
+                            <div class="form-group"><label>الخبرات</label><textarea id="f_skills"></textarea></div>
+                            <div class="form-group"><label>المعرف</label><input type="text" id="f_ref_name" placeholder="الاسم ورقم الهاتف"></div>
+                            <div class="form-group"><label>ملاحظات</label><textarea id="f_notes"></textarea></div>
                         </div>
                     </div>
                 </form>
@@ -245,13 +241,20 @@
             <div id="tab-db" class="tab-content hidden">
                 <div class="table-controls no-print">
                     <input type="text" id="search-input" placeholder="بحث (الاسم، الهاتف، الهوية)..." onkeyup="renderTable()" style="flex: 2; min-width: 200px; padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                    <select id="filter-gender" onchange="renderTable()" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                        <option value="">كل الجنس</option>
-                        <option value="ذكر">ذكر</option>
-                        <option value="أنثى">أنثى</option>
+                    
+                    <select id="filter-branch" onchange="renderTable()" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="">كل الفروع</option>
+                        <option value="الفرع الأول">الفرع الأول</option>
+                        <option value="الفرع الثاني">الفرع الثاني</option>
+                        <option value="الفرع الثالث">الفرع الثالث</option>
+                        <option value="الفرع الرابع">الفرع الرابع</option>
+                        <option value="الفرع الخامس">الفرع الخامس</option>
+                        <option value="الفرع السادس">الفرع السادس</option>
+                        <option value="أخرى">أخرى</option>
                     </select>
+
                     <button onclick="window.print()" class="btn btn-outline">طباعة الجدول</button>
-                    <button onclick="exportToCSV()" class="btn btn-success">تصدير Excel</button>
+                    <button onclick="exportToCSV()" class="btn btn-success admin-only">تصدير Excel</button>
                 </div>
                 <div class="table-responsive">
                     <table id="records-table">
@@ -259,9 +262,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>الاسم</th>
-                                <th>الهاتف</th>
-                                <th>التولد</th>
-                                <th>الحالة</th>
+                                <th>الفرع</th> <th>الهاتف</th>
                                 <th>العمل</th>
                                 <th class="no-print">إجراءات</th>
                             </tr>
@@ -273,34 +274,11 @@
                 <p id="records-count" style="margin-top: 10px; color: #666;"></p>
             </div>
 
-            <div id="tab-settings" class="tab-content hidden">
+            <div id="tab-settings" class="tab-content hidden admin-only">
                 <div class="form-section">
                     <h3>تخصيص المظهر</h3>
-                    <div class="form-group">
-                        <label>لون النظام الرئيسي</label>
-                        <input type="color" id="set-color" onchange="saveSettings()" style="height: 40px; width: 100%;">
-                    </div>
-                    <div class="form-group">
-                        <label>عنوان التطبيق</label>
-                        <input type="text" id="set-title" oninput="saveSettings()">
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>بيانات الدخول (Admin)</h3>
-                    <div class="form-group">
-                        <label>كلمة المرور الحالية</label>
-                        <input type="password" id="set-curr-pass">
-                    </div>
-                    <div class="form-group">
-                        <label>اسم المستخدم الجديد</label>
-                        <input type="text" id="set-new-user">
-                    </div>
-                    <div class="form-group">
-                        <label>كلمة المرور الجديدة</label>
-                        <input type="password" id="set-new-pass">
-                    </div>
-                    <button onclick="updateAdmin()" class="btn btn-primary" style="margin-top: 10px;">تحديث البيانات</button>
+                    <div class="form-group"><label>لون النظام</label><input type="color" id="set-color" onchange="saveSettings()" style="height: 40px; width: 100%;"></div>
+                    <div class="form-group"><label>العنوان</label><input type="text" id="set-title" oninput="saveSettings()"></div>
                 </div>
 
                 <div class="form-section">
@@ -312,34 +290,29 @@
                             <input type="file" accept=".json" onchange="importJSON(this)" style="display: none;">
                         </label>
                     </div>
-                    <hr style="margin: 20px 0; border-top: 1px solid #eee;">
-                    <button onclick="wipeData()" class="btn btn-danger">حذف جميع البيانات (تهيئة)</button>
+                    <hr>
+                    <button onclick="wipeData()" class="btn btn-danger">حذف جميع البيانات</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Constants & State ---
-        const DB_KEY = 'local_db_v1';
+        const DB_KEY = 'local_db_v2';
         let appData = {
-            settings: {
-                adminUser: 'admin',
-                adminPass: '1001',
-                themeColor: '#2563eb',
-                appTitle: 'نظام إدارة البيانات'
-            },
+            settings: { themeColor: '#2563eb', appTitle: 'نظام إدارة البيانات' },
             records: []
         };
-        let currentUser = null; // Session token simulation
+        let currentRole = null; // 'ADMIN' or 'VIEWER'
 
-        // --- Initialization ---
         window.onload = function() {
             loadData();
             applySettings();
             
-            // Check session
-            if (localStorage.getItem('app_session') === 'active') {
+            // Check session role
+            const savedRole = sessionStorage.getItem('app_role');
+            if (savedRole) {
+                currentRole = savedRole;
                 showApp();
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
@@ -350,7 +323,6 @@
             const stored = localStorage.getItem(DB_KEY);
             if (stored) {
                 appData = JSON.parse(stored);
-                // Ensure structure integrity if upgraded
                 if (!appData.records) appData.records = [];
                 if (!appData.settings) appData.settings = {};
             }
@@ -361,58 +333,64 @@
         }
 
         function applySettings() {
-            document.documentElement.style.setProperty('--primary', appData.settings.themeColor);
-            document.getElementById('set-color').value = appData.settings.themeColor;
-            
+            document.documentElement.style.setProperty('--primary', appData.settings.themeColor || '#2563eb');
             const title = appData.settings.appTitle || 'نظام إدارة البيانات';
             document.getElementById('app-title').textContent = title;
             document.title = title;
             document.getElementById('set-title').value = title;
-            document.getElementById('set-new-user').value = appData.settings.adminUser;
+            document.getElementById('set-color').value = appData.settings.themeColor;
         }
 
-        // --- Auth ---
+        // --- Auth Logic ---
         function handleLogin(e) {
             e.preventDefault();
-            const u = document.getElementById('login-user').value;
-            const p = document.getElementById('login-pass').value;
-
-            if (u === appData.settings.adminUser && p === appData.settings.adminPass) {
-                localStorage.setItem('app_session', 'active');
+            const code = document.getElementById('login-code').value;
+            
+            if (code === '110011') {
+                currentRole = 'ADMIN';
+                sessionStorage.setItem('app_role', 'ADMIN');
                 showApp();
-                document.getElementById('login-user').value = '';
-                document.getElementById('login-pass').value = '';
+            } else if (code === '789') {
+                currentRole = 'VIEWER';
+                sessionStorage.setItem('app_role', 'VIEWER');
+                showApp();
             } else {
-                showNotify('خطأ في اسم المستخدم أو كلمة المرور', 'error');
+                showNotify('رمز الدخول غير صحيح', 'error');
             }
         }
 
         function handleLogout() {
-            localStorage.removeItem('app_session');
+            sessionStorage.removeItem('app_role');
+            currentRole = null;
             location.reload();
         }
 
         function showApp() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-interface').classList.remove('hidden');
+            document.getElementById('user-role-display').textContent = currentRole === 'ADMIN' ? 'المدير' : 'زائر';
+            
+            // UI Logic based on Role
+            const adminElements = document.querySelectorAll('.admin-only');
+            if (currentRole === 'VIEWER') {
+                adminElements.forEach(el => el.classList.add('hidden'));
+                switchTab('tab-db'); // Viewer starts at DB
+            } else {
+                adminElements.forEach(el => el.classList.remove('hidden'));
+                switchTab('tab-form'); // Admin starts at Form
+            }
             renderTable();
         }
 
         // --- Tabs ---
         function switchTab(tabId) {
-            // Hide all contents
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            // Show target
             document.getElementById(tabId).classList.remove('hidden');
             
-            // Update buttons
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            // Use simple index logic or event target for simplicity, here we match button text roughly or index
-            // A simpler way:
-            const buttons = document.querySelectorAll('.tab-btn');
-            if(tabId === 'tab-form') buttons[0].classList.add('active');
-            if(tabId === 'tab-db') { buttons[1].classList.add('active'); renderTable(); }
-            if(tabId === 'tab-settings') buttons[2].classList.add('active');
+            if(tabId === 'tab-form') document.getElementById('btn-tab-form').classList.add('active');
+            if(tabId === 'tab-db') { document.getElementById('btn-tab-db').classList.add('active'); renderTable(); }
+            if(tabId === 'tab-settings') document.getElementById('btn-tab-settings').classList.add('active');
         }
 
         // --- Form Handling ---
@@ -434,23 +412,23 @@
         }
 
         function resetForm() {
+            if(currentRole !== 'ADMIN') return;
             document.getElementById('main-form').reset();
             document.getElementById('f_id').value = '';
             document.getElementById('save-btn').textContent = 'حفظ السجل';
             document.getElementById('save-btn').classList.remove('btn-success');
             document.getElementById('save-btn').classList.add('btn-primary');
             toggleMaritalFields();
-            switchTab('tab-form');
         }
 
         function handleSave(e) {
             e.preventDefault();
-            
+            if(currentRole !== 'ADMIN') return;
+
             const idVal = document.getElementById('f_id').value;
             
-            // Collect Data
             const record = {
-                id: idVal ? parseInt(idVal) : Date.now(), // Timestamp as simple unique ID
+                id: idVal ? parseInt(idVal) : Date.now(),
                 name: document.getElementById('f_name').value,
                 dob: document.getElementById('f_dob').value,
                 pob: document.getElementById('f_pob').value,
@@ -474,21 +452,15 @@
                 org_class: document.getElementById('f_org_class').value,
                 skills: document.getElementById('f_skills').value,
                 ref_name: document.getElementById('f_ref_name').value,
-                ref_phone: document.getElementById('f_ref_phone').value,
                 notes: document.getElementById('f_notes').value
             };
 
             if (idVal) {
-                // Update
                 const index = appData.records.findIndex(r => r.id == idVal);
-                if (index !== -1) {
-                    appData.records[index] = record;
-                    showNotify('تم تحديث البيانات بنجاح', 'success');
-                }
+                if (index !== -1) { appData.records[index] = record; showNotify('تم التحديث', 'success'); }
             } else {
-                // New
                 appData.records.push(record);
-                showNotify('تمت الإضافة بنجاح', 'success');
+                showNotify('تم الحفظ', 'success');
             }
 
             saveData();
@@ -496,12 +468,13 @@
         }
 
         function editRecord(id) {
+            if(currentRole !== 'ADMIN') return;
             const rec = appData.records.find(r => r.id == id);
             if (!rec) return;
 
-            resetForm(); // clear first
-            
-            // Fill fields
+            resetForm();
+            switchTab('tab-form');
+
             document.getElementById('f_id').value = rec.id;
             document.getElementById('f_name').value = rec.name;
             document.getElementById('f_dob').value = rec.dob;
@@ -510,7 +483,7 @@
             document.getElementById('f_mother').value = rec.mother;
             document.getElementById('f_national_id').value = rec.national_id;
             document.getElementById('f_marital').value = rec.marital;
-            toggleMaritalFields(); // Show conditional fields before filling
+            toggleMaritalFields();
             document.getElementById('f_spouse').value = rec.spouse || '';
             document.getElementById('f_children').value = rec.children || '';
             document.getElementById('f_education').value = rec.education;
@@ -521,24 +494,22 @@
             document.getElementById('f_address_2').value = rec.address_2;
             document.getElementById('f_landmark').value = rec.landmark;
             document.getElementById('f_org_body').value = rec.org_body;
-            document.getElementById('f_org_branch').value = rec.org_branch;
+            document.getElementById('f_org_branch').value = rec.org_branch || '';
             document.getElementById('f_org_div').value = rec.org_div;
             document.getElementById('f_org_div_name').value = rec.org_div_name;
             document.getElementById('f_org_class').value = rec.org_class;
             document.getElementById('f_skills').value = rec.skills;
-            document.getElementById('f_ref_name').value = rec.ref_name;
-            document.getElementById('f_ref_phone').value = rec.ref_phone;
+            document.getElementById('f_ref_name').value = rec.ref_name || '';
             document.getElementById('f_notes').value = rec.notes;
 
-            // Change button state
             const btn = document.getElementById('save-btn');
             btn.textContent = 'تحديث البيانات';
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-success');
+            btn.classList.replace('btn-primary', 'btn-success');
         }
 
         function deleteRecord(id) {
-            if (confirm('هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع.')) {
+            if(currentRole !== 'ADMIN') return;
+            if (confirm('حذف السجل؟')) {
                 appData.records = appData.records.filter(r => r.id != id);
                 saveData();
                 renderTable();
@@ -552,170 +523,156 @@
             tbody.innerHTML = '';
             
             const search = document.getElementById('search-input').value.toLowerCase();
-            const filterGen = document.getElementById('filter-gender').value;
+            const filterBranch = document.getElementById('filter-branch').value; // Get Branch Filter
 
             const filtered = appData.records.filter(r => {
                 const txt = `${r.name} ${r.phone} ${r.national_id}`.toLowerCase();
                 const matchSearch = txt.includes(search);
-                const matchGen = filterGen ? r.gender === filterGen : true;
-                return matchSearch && matchGen;
+                // Filter Logic: If filter is selected, check if record's branch matches
+                const matchBranch = filterBranch ? (r.org_branch === filterBranch) : true;
+                return matchSearch && matchBranch;
             });
 
             document.getElementById('records-count').textContent = `العدد: ${filtered.length}`;
 
             filtered.forEach((r, idx) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${idx + 1}</td>
-                    <td><strong>${r.name}</strong><br><small style="color:#666">${r.mother || '-'}</small></td>
-                    <td dir="ltr">${r.phone}</td>
-                    <td>${r.dob || '-'}</td>
-                    <td>${r.marital}</td>
-                    <td>${r.job || '-'}</td>
-                    <td class="no-print">
-                        <button onclick="printRecord(${r.id})" class="btn btn-outline" style="padding:5px;">🖨️</button>
+                
+                // Admin Actions vs Viewer Actions
+                let actionsHTML = `<button onclick="printRecord(${r.id})" class="btn btn-outline" style="padding:5px;">🖨️ طباعة</button>`;
+                
+                if (currentRole === 'ADMIN') {
+                    actionsHTML += `
                         <button onclick="editRecord(${r.id})" class="btn btn-primary" style="padding:5px;">✏️</button>
                         <button onclick="deleteRecord(${r.id})" class="btn btn-danger" style="padding:5px;">🗑️</button>
-                    </td>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td><strong>${r.name}</strong></td>
+                    <td>${r.org_branch || '-'}</td>
+                    <td dir="ltr">${r.phone}</td>
+                    <td>${r.job || '-'}</td>
+                    <td class="no-print">${actionsHTML}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function printRecord(id) {
-            const r = appData.records.find(d => d.id == id);
-            if (!r) return;
+            // To print vertically on one page:
+            // 1. Populate the Form with the data (readonly mode mentally)
+            // 2. Hide everything else via CSS @media print
+            // 3. Print
             
-            // Create a temporary printable view
-            // In a real SPA we might overlay, but for single file simple print logic:
-            // We will edit the form with data (read only) and print the form tab? 
-            // Better: Populate the form, switch to form tab, hide controls, print, then restore.
+            const rec = appData.records.find(d => d.id == id);
+            if (!rec) return;
+
+            // Save current form state to restore later if needed, or just clear
+            // Populate form fields manually to avoid triggering "Edit Mode" UI changes if Viewer
+            document.getElementById('f_name').value = rec.name;
+            document.getElementById('f_dob').value = rec.dob;
+            document.getElementById('f_pob').value = rec.pob;
+            document.getElementById('f_gender').value = rec.gender;
+            document.getElementById('f_mother').value = rec.mother;
+            document.getElementById('f_national_id').value = rec.national_id;
+            document.getElementById('f_marital').value = rec.marital;
+            toggleMaritalFields();
+            document.getElementById('f_spouse').value = rec.spouse || '';
+            document.getElementById('f_children').value = rec.children || '';
+            document.getElementById('f_education').value = rec.education;
+            document.getElementById('f_specialization').value = rec.specialization;
+            document.getElementById('f_job').value = rec.job;
+            document.getElementById('f_phone').value = rec.phone;
+            document.getElementById('f_address_1').value = rec.address_1;
+            document.getElementById('f_address_2').value = rec.address_2;
+            document.getElementById('f_landmark').value = rec.landmark;
+            document.getElementById('f_org_body').value = rec.org_body;
+            document.getElementById('f_org_branch').value = rec.org_branch || '';
+            document.getElementById('f_org_div').value = rec.org_div;
+            document.getElementById('f_org_div_name').value = rec.org_div_name;
+            document.getElementById('f_org_class').value = rec.org_class;
+            document.getElementById('f_skills').value = rec.skills;
+            document.getElementById('f_ref_name').value = rec.ref_name || '';
+            document.getElementById('f_notes').value = rec.notes;
+
+            // Switch to form tab temporarily for printing
+            // We use a trick: hide all tab contents, show form, print, then restore
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-form').classList.remove('hidden');
             
-            editRecord(id); // Load data to form
-            switchTab('tab-form');
             setTimeout(() => {
                 window.print();
+                // Restore view
+                if(currentRole === 'VIEWER') switchTab('tab-db');
+                else switchTab('tab-db'); // Return to DB usually makes sense
             }, 300);
         }
 
-        // --- Export / Import ---
+        // --- Export/Import (Admin Only) ---
         function exportJSON() {
+            if(currentRole !== 'ADMIN') return;
             const str = JSON.stringify(appData, null, 2);
             const blob = new Blob([str], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
+            a.href = URL.createObjectURL(blob);
             a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
         }
 
         function importJSON(input) {
+            if(currentRole !== 'ADMIN') return;
             const file = input.files[0];
             if (!file) return;
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.records && Array.isArray(data.records)) {
-                        appData = data;
-                        saveData();
-                        loadData(); // Reload state
-                        applySettings();
-                        showNotify('تم استعادة النسخة بنجاح', 'success');
-                        input.value = ''; // Reset input
-                    } else {
-                        alert('ملف غير صالح');
-                    }
-                } catch (err) {
-                    alert('خطأ في قراءة الملف');
-                }
+                    appData = JSON.parse(e.target.result);
+                    saveData();
+                    loadData();
+                    showNotify('تم استعادة النسخة', 'success');
+                } catch (err) { alert('ملف غير صالح'); }
             };
             reader.readAsText(file);
         }
 
         function exportToCSV() {
-            // BOM for Excel to read Arabic correctly
-            let csvContent = "\uFEFF"; 
-            csvContent += "الاسم,الهاتف,التولد,الجنس,الحالة,الوظيفة,السكن,الملاحظات\n";
-            
+            if(currentRole !== 'ADMIN') return;
+            let csv = "\uFEFFالاسم,الفرع,الهاتف,التولد,العمل,العنوان\n";
             appData.records.forEach(r => {
-                const row = [
-                    `"${r.name}"`,
-                    `"${r.phone}"`,
-                    `"${r.dob}"`,
-                    `"${r.gender}"`,
-                    `"${r.marital}"`,
-                    `"${r.job}"`,
-                    `"${r.address_1} - ${r.address_2}"`,
-                    `"${r.notes}"`
-                ];
-                csvContent += row.join(",") + "\n";
+                csv += `"${r.name}","${r.org_branch}","${r.phone}","${r.dob}","${r.job}","${r.address_1}"\n`;
             });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "data_export.csv");
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = "data.csv";
             link.click();
-            document.body.removeChild(link);
         }
 
-        // --- Settings Management ---
+        function wipeData() {
+            if(currentRole !== 'ADMIN') return;
+            if (confirm('سيتم حذف كل البيانات! هل أنت متأكد؟')) {
+                localStorage.removeItem(DB_KEY);
+                location.reload();
+            }
+        }
+
         function saveSettings() {
+            if(currentRole !== 'ADMIN') return;
             appData.settings.themeColor = document.getElementById('set-color').value;
             appData.settings.appTitle = document.getElementById('set-title').value;
             saveData();
             applySettings();
         }
 
-        function updateAdmin() {
-            const curr = document.getElementById('set-curr-pass').value;
-            const newUser = document.getElementById('set-new-user').value;
-            const newPass = document.getElementById('set-new-pass').value;
-
-            if (curr !== appData.settings.adminPass) {
-                showNotify('كلمة المرور الحالية غير صحيحة', 'error');
-                return;
-            }
-            if (!newUser || !newPass) {
-                showNotify('يرجى ملء الحقول', 'error');
-                return;
-            }
-
-            appData.settings.adminUser = newUser;
-            appData.settings.adminPass = newPass;
-            saveData();
-            showNotify('تم تحديث بيانات الدخول', 'success');
-            document.getElementById('set-curr-pass').value = '';
-            document.getElementById('set-new-pass').value = '';
-        }
-
-        function wipeData() {
-            if (confirm('تحذير خطير: سيتم مسح جميع السجلات والإعدادات! هل أنت متأكد؟')) {
-                if (confirm('تأكيد نهائي: هل تريد حقاً حذف كل شيء؟')) {
-                    localStorage.removeItem(DB_KEY);
-                    localStorage.removeItem('app_session');
-                    location.reload();
-                }
-            }
-        }
-
-        // --- Utils ---
         function showNotify(msg, type) {
             const n = document.getElementById('notification');
             n.textContent = msg;
             n.className = type === 'success' ? 'notify-success' : 'notify-error';
             n.style.opacity = '1';
             n.style.bottom = '20px';
-            setTimeout(() => {
-                n.style.opacity = '0';
-                n.style.bottom = '-50px';
-            }, 3000);
+            setTimeout(() => { n.style.opacity = '0'; n.style.bottom = '-50px'; }, 3000);
         }
-
     </script>
 </body>
 </html>
